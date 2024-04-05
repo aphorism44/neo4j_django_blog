@@ -1,0 +1,26 @@
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+
+# Ignore the virtual environment directory
+.venv/
+
+# Ignore media and static files
+media/
+static/
+
+# Ignore local settings (settings/local.py) or any other environment-specific settings
+/settings/local.py
+
+# Ignore secret key and sensitive information
+/secret_key.txt
+/.env
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.swp
+
+# Ignore database migration files
+/migrations/

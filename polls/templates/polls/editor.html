@@ -1,0 +1,11 @@
+<form action="{% url 'polls:save' entry.id %}" method="post">
+    <fieldset>
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+    </fieldset>
+    <textarea id="text" name="text" rows="20" cols="50">
+        {{ text }}
+    </textarea>
+    <input type="submit" value="Previous Entry (and Save)">
+    <input type="submit" value="Save">
+    <input type="submit" value="Next Entry (and Save)">
+</form>

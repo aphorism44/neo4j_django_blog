@@ -10,9 +10,6 @@ class Neo4jCRUDOperations:
         self.active = True
     
     def connect(self):
-        print(config('LOCAL_BOLT_URI'))
-        print(config('LOCAL_NEO4J_USERNAME'))
-        print(config('LOCAL_NEO4J_PASSWORD'))
         self._driver = GraphDatabase.driver(config('LOCAL_BOLT_URI')
                                             , auth=(config('LOCAL_NEO4J_USERNAME')
                                             , config('LOCAL_NEO4J_PASSWORD')))
@@ -25,7 +22,7 @@ class Neo4jCRUDOperations:
         with self._driver.session() as session:
             result = session.read_transaction(self._get_latest_entry, email)
             if result:
-                return result[0]['e']
+                return result[0]['e'], result[0]['latest_entry_id']
             else:
                 return None
     
@@ -51,7 +48,7 @@ class Neo4jCRUDOperations:
                 return None
             result = session.write_transaction(self._link_entry_chain, entry_id_from, entry_id_to)
             if result:
-                return result[0]['entry_id_to']
+                return result[0]['to'], result[0]['from']
             else:
                 return None
     
@@ -59,21 +56,21 @@ class Neo4jCRUDOperations:
         with self._driver.session() as session:
             if email is None or entry_id is None:
                 return None
-        result = session.write_transaction(self._get_next_entry, email, entry_id)
-        if result:
-            return result[0]['e']
-        else:
-            return None
+            result = session.write_transaction(self._get_next_entry, email, entry_id)
+            if result:
+                return result[0]['e2'], result[0]['next_id'], 
+            else:
+                return None
         
     def get_previous_entry(self, email, entry_id):
         with self._driver.session() as session:
             if email is None or entry_id is None:
                 return None
-        result = session.write_transaction(self._get_previous_entry, email, entry_id)
-        if result:
-            return result[0]['e']
-        else:
-            return None
+            result = session.write_transaction(self._get_previous_entry, email, entry_id)
+            if result:
+                return result[0]['e2'], result[0]['previous_id'], 
+            else:
+                return None
     
     def get_all_entries(self, email):
         with self._driver.session() as session:
@@ -86,33 +83,33 @@ class Neo4jCRUDOperations:
     
     @staticmethod
     def _get_latest_entry(tx, email):
-        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at DESC LIMIT 1 RETURN e", email=email)
+        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at DESC LIMIT 1 RETURN e, elementId(e) as latest_entry_id", email=email)
         return result.data()
     
     @staticmethod
     def _create_empty_entry(tx, email):
-        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account) CREATE (a)-[:HAS_ENTRY]->(e:Entry {created_at: TIMESTAMP()}) RETURN ID(e) AS new_entry_id", email=email)
+        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account) CREATE (a)-[:HAS_ENTRY]->(e:Entry {created_at: TIMESTAMP()}) RETURN elementId(e) AS new_entry_id", email=email)
         return result.data()
     
     @staticmethod
     def _update_entry(tx, entry_id, text):
-        result = tx.run("MATCH (e:Entry) WHERE ID(e) = $entry_id SET e.text = $text RETURN e", entry_id=entry_id, text=text)
+        result = tx.run("MATCH (e:Entry) WHERE elementId(e) = $entry_id SET e.text = $text RETURN e", entry_id=entry_id, text=text)
         return result.data()
 
     
     @staticmethod
     def _link_entry_chain(tx, entry_id_from, entry_id_to):
-        result = tx.run("MATCH (from:Entry), (to:Entry) WHERE ID(from) = $entry_id_from AND ID(to) = $entry_id_to CREATE (from)-[:HAS_NEXT_ENTRY]->(to) RETURN to, from", entry_id_from=entry_id_from, entry_id_to=entry_id_to)
+        result = tx.run("MATCH (from:Entry), (to:Entry) WHERE elementId(from) = $entry_id_from AND elementId(to) = $entry_id_to CREATE (from)-[:HAS_NEXT_ENTRY]->(to) RETURN to, from", entry_id_from=entry_id_from, entry_id_to=entry_id_to)
         return result.data()
     
     @staticmethod
     def _get_next_entry(tx, email, entry_id):
-        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e1:Entry)-[:HAS_NEXT_ENTRY]->(e2:Entry) WHERE ID(e1) = $entry_id  RETURN e2", email=email, entry_id=entry_id)
+        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e1:Entry)-[:HAS_NEXT_ENTRY]->(e2:Entry) WHERE elementId(e1) = $entry_id  RETURN e2, elementId(e2) AS next_id", email=email, entry_id=entry_id)
         return result.data()
     
     @staticmethod
     def _get_previous_entry(tx, email, entry_id):
-        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e1:Entry)<-[:HAS_NEXT_ENTRY]-(e2:Entry) WHERE ID(e1) = $entry_id  RETURN e2", email=email, entry_id=entry_id)
+        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e1:Entry)<-[:HAS_NEXT_ENTRY]-(e2:Entry) WHERE elementId(e1) = $entry_id  RETURN e2, elementId(e2) AS previous_id", email=email, entry_id=entry_id)
         return result.data()
 
     @staticmethod

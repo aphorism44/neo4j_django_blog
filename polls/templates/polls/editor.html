@@ -1,4 +1,4 @@
-<form action="{% url 'polls:save' entry.id %}" method="post">
+<form action="{% url 'polls:save' entry_id %}" method="post">
     <fieldset>
         {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
     </fieldset>

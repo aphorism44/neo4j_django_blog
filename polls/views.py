@@ -11,21 +11,18 @@ def index(request):
 
 def editor(request):
     neo4j_crud = request.neo4j_crud
-    latest_entry = neo4j_crud.get_latest_entry_id(email)
-    print(latest_entry)
-    previous_entry = neo4j_crud.get_previous_entry(email, 8)
-    print(previous_entry)
-    next_extry = neo4j_crud.get_next_entry(email, 10)
-    print(next_extry)
+    # ({'created_at': 1712172599628, 'text': 'third entry'}, '4:c3df316c-576d-4e93-8202-9cfd5caf4d33:10')
+    # OR None
+    latest_entry = neo4j_crud.get_latest_entry(email)
+    previous_entry = neo4j_crud.get_previous_entry(email, latest_entry[1])
+    next_extry = neo4j_crud.get_next_entry(email, latest_entry[1])
     template = loader.get_template("polls/editor.html")
-    '''context = {
-        "entry_id": latest_question_list,
-        "previous_entry_id": previous_entry_id,
-        "next_extry_id": next_extry_id,
+    context = {
+        "entry_id": latest_entry[1],
+        "previous_entry_id": None if previous_entry is None else previous_entry[1],
+        "next_extry_id": None if next_extry is None else next_extry[1],
     }
     return HttpResponse(template.render(context, request))
-    '''
-    return HttpResponse(template.render({}, request))
     
     
 def save(request, entry_id, text):

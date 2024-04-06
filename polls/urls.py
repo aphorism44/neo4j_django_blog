@@ -1,4 +1,4 @@
-from django.urls import path, include
+from django.urls import path
 
 from . import views
 
@@ -9,5 +9,4 @@ urlpatterns = [
     # ex: /polls/editor
     path("editor/", views.editor, name="editor"),
     path("lists/", views.lists, name="lists"),
-    path('tinymce/', include('tinymce.urls')),
 ]

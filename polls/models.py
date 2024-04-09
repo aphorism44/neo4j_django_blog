@@ -39,7 +39,7 @@ class Neo4jCRUDOperations:
                 return None
             result = session.write_transaction(self._update_entry, entry_id, text)
             if result:
-                return result[0]['q']
+                return result[0]['e']
             return None
     
     def link_entry_chain(self, entry_id_from, entry_id_to):
@@ -58,7 +58,7 @@ class Neo4jCRUDOperations:
                 return None
             result = session.write_transaction(self._get_next_entry, email, entry_id)
             if result:
-                return result[0]['e2'], result[0]['next_id'], 
+                return result[0]['e2'], result[0]['next_id'] 
             else:
                 return None
         
@@ -68,7 +68,7 @@ class Neo4jCRUDOperations:
                 return None
             result = session.write_transaction(self._get_previous_entry, email, entry_id)
             if result:
-                return result[0]['e2'], result[0]['previous_id'], 
+                return result[0]['e2'], result[0]['previous_id']
             else:
                 return None
     

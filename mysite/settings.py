@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'polls.apps.PollsConfig',
+    'polls',
 ]
 
 MIDDLEWARE = [
@@ -77,6 +77,7 @@ TEMPLATE_DIR = os.path.join(BASE_DIR,'templates')
 
 WSGI_APPLICATION = 'mysite.wsgi.application'
 
+CSRF_TRUSTED_ORIGINS  = ['http://127.0.0.1:8000']
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

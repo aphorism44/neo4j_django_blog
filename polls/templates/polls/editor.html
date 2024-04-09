@@ -1,11 +1,11 @@
-<form action="{% url 'polls:save' entry_id %}" method="post">
-    <fieldset>
-        {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-    </fieldset>
-    <textarea id="text" name="text" rows="20" cols="50">
-        {{ text }}
-    </textarea>
-    <input type="submit" value="Previous Entry (and Save)">
-    <input type="submit" value="Save">
-    <input type="submit" value="Next Entry (and Save)">
+<form action="/polls/editor/" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" name="save" value="Save">
+    {% if form.previous_entry_id.value != None %}
+        <input type="submit" name="previous" value="Previous Entry (and save)" />
+    {% endif %}
+    {% if form.next_entry_id.value != None %}
+        <input type="submit" name="next" value="Next Entry (and save)"> </input>
+    {% endif %}
 </form>

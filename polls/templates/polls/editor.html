@@ -7,5 +7,7 @@
     {% endif %}
     {% if form.next_entry_id.value != None %}
         <input type="submit" name="next" value="Next Entry (and save)"> </input>
+    {% else %}
+        <input type="submit" name="new" value="Create New Entry (and save)"> </input>
     {% endif %}
 </form>

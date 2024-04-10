@@ -1,0 +1,12 @@
+<ul>
+{% for key, value in word_map.items %}
+    <li>{{ key }}: </li>
+    <ul>
+    {% for tag in value %}
+        <li>{{ tag }}</li>
+    {% endfor %}
+    </ul>
+{% endfor %}
+</ul>
+
+<li><a href="/polls">Return to Main Page</a></li>

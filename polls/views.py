@@ -3,7 +3,8 @@ from django.shortcuts import render
 from django.template import loader
 from django.views.decorators.csrf import csrf_protect
 
-from .forms import EntryForm 
+from .forms import EntryForm
+from .analysis import create_ai_analyzed_map, get_matched_words_dict, get_full_dict
 
 #hardcoded until app is updated for multiuser
 email = 'd-jesse@comcast.net'
@@ -87,10 +88,8 @@ def editor(request):
     context = { 'form' : entry_form }
     return HttpResponse(template.render(context, request))
 
-def lists(request):
-    neo4j_crud = request.neo4j_crud
-    all_entries = neo4j_crud.get_all_entries(email)
-    if not all_entries:
-        raise Http404("Problem no entries")
-    return render(request, "polls/lists.html", {"entries": all_entries})
+def analysis(request):
+    full_map = get_matched_words_dict(request, email)
+    print(full_map)
+    return render(request, "polls/analysis.html", {"word_map": full_map})
 

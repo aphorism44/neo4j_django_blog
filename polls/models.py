@@ -78,7 +78,7 @@ class Neo4jCRUDOperations:
                 return None
             results = session.write_transaction(self._get_all_entries, email)
             if results:
-                return results[0]
+                return results
             return None
     
     @staticmethod
@@ -96,7 +96,6 @@ class Neo4jCRUDOperations:
         result = tx.run("MATCH (e:Entry) WHERE elementId(e) = $entry_id SET e.text = $text RETURN e", entry_id=entry_id, text=text)
         return result.data()
 
-    
     @staticmethod
     def _link_entry_chain(tx, entry_id_from, entry_id_to):
         result = tx.run("MATCH (from:Entry), (to:Entry) WHERE elementId(from) = $entry_id_from AND elementId(to) = $entry_id_to CREATE (from)-[:HAS_NEXT_ENTRY]->(to) RETURN to, from", entry_id_from=entry_id_from, entry_id_to=entry_id_to)
@@ -114,7 +113,7 @@ class Neo4jCRUDOperations:
 
     @staticmethod
     def _get_all_entries(tx, email):
-        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at DESC RETURN e", email=email)
+        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at DESC RETURN e, elementId(e) AS entry_id", email=email)
         return result.data()
     
     

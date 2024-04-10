@@ -89,7 +89,10 @@ def editor(request):
     return HttpResponse(template.render(context, request))
 
 def analysis(request):
-    full_map = get_matched_words_dict(request, email)
+    full_map = {}
+    # of the format   keyWord -> List(of labels), parallel List (of entry IDs they refer to)
+    # need to add these key words to Neo4j schema (MERGE)
+    full_map = create_ai_analyzed_map(request, email)
     print(full_map)
     return render(request, "polls/analysis.html", {"word_map": full_map})
 

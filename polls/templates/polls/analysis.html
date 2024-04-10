@@ -2,8 +2,8 @@
 {% for key, value in word_map.items %}
     <li>{{ key }}: </li>
     <ul>
-    {% for tag in value %}
-        <li>{{ tag }}</li>
+    {% for item in value %}
+        <li>{{ item }}</li>
     {% endfor %}
     </ul>
 {% endfor %}

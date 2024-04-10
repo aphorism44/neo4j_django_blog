@@ -12,12 +12,15 @@ def create_ai_analyzed_map(request, email):
     matched_word_dict = get_matched_words_dict(request, email)
     analyzed_word_dict = {}
     for key, value in matched_word_dict.items():
-        tag_set = set()
+        tag_list = []
+        parallel_id_list = []
         for entry_id in value:
-            label = get_entry_word_label(key, entry_id)
-            tag_set.add(label)
-        analyzed_word_dict[key] = tag_set
-    return matched_word_dict
+            label = get_entry_word_label(request, key, entry_id)
+            tag_list.append(label)
+            parallel_id_list.append(entry_id)
+        analyzed_word_dict[key] = tag_list, parallel_id_list
+        break
+    return analyzed_word_dict
 
 
 def get_matched_words_dict(request, email):

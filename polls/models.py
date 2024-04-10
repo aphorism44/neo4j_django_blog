@@ -26,6 +26,14 @@ class Neo4jCRUDOperations:
             else:
                 return None
     
+    def get_entry_by_id(self, entry_id):
+        with self._driver.session() as session:
+            result = session.read_transaction(self._get_entry_by_id, entry_id)
+            if result:
+                return result[0]['e'], result[0]['latest_entry_id']
+            else:
+                return None
+    
     def create_empty_entry(self, email):
         with self._driver.session() as session:
             result = session.write_transaction(self._create_empty_entry, email)
@@ -84,6 +92,11 @@ class Neo4jCRUDOperations:
     @staticmethod
     def _get_latest_entry(tx, email):
         result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at DESC LIMIT 1 RETURN e, elementId(e) as latest_entry_id", email=email)
+        return result.data()
+    
+    @staticmethod
+    def _get_entry_by_id(tx, entry_id):
+        result = tx.run("MATCH (e:Entry) WHERE elementId(e) = $entry_id RETURN e, elementId(e) as latest_entry_id", entry_id=entry_id)
         return result.data()
     
     @staticmethod

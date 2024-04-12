@@ -30,6 +30,18 @@ class Neo4jCRUDOperations:
             else:
                 return None
     
+    def get_first_entry(self, email):
+        with self._driver.session() as session:
+            try:
+                result = session.execute_read(self._get_first_entry, email)
+            except Exception as e:
+                print(e)
+                return None
+            if result:
+                return result[0]['e'], result[0]['first_entry_id']
+            else:
+                return None
+    
     def get_entry_by_id(self, entry_id):
         with self._driver.session() as session:
             try:
@@ -139,13 +151,44 @@ class Neo4jCRUDOperations:
             if email is None or keyword is None or phrase is None or entry_id is None:
                 return None
             try:
-                result = session.execute_write(self.__attach_keyword_to_entry, email, keyword, phrase, entry_id)
+                result = session.execute_write(self._attach_keyword_to_entry, email, keyword, phrase, entry_id)
             except Exception as e:
                 print(e)
                 return None
             if result:
                 return result[0]['k'], result[0]['keyword_id']
             return None
+    
+    def get_navigation_information(self, email):
+        with self._driver.session() as session:
+            if email is None:
+                return None
+            try:
+                results = session.execute_read(self._get_navigation_information, email)
+            except Exception as e:
+                print(e)
+                return None
+            if results:
+                return results
+            return None
+
+    def get_all_keywords(self, email):
+        with self._driver.session() as session:
+            if email is None:
+                return None
+            try:
+                results = session.execute_read(self._get_all_keywords, email)
+            except Exception as e:
+                print(e)
+                return None
+            if results:
+                return results
+            return None
+        
+    @staticmethod
+    def _get_first_entry(tx, email):
+        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at LIMIT 1 RETURN e, elementId(e) as first_entry_id", email=email)
+        return result.data()
 
     @staticmethod
     def _get_latest_entry(tx, email):
@@ -193,6 +236,16 @@ class Neo4jCRUDOperations:
         return result.data()
     
     @staticmethod
-    def __attach_keyword_to_entry(tx, email, entry_id, phrase, keyword):
+    def _attach_keyword_to_entry(tx, email, entry_id, phrase, keyword):
         result = tx.run("MATCH (e:Entry), (k:Keyword{user:$email, keyword:$keyword}) WHERE elementId(e) = $entry_id MERGE (k)-[:IN_ENTRY {phrase: $phrase }]->(e) RETURN k, elementId(k) AS keyword_id", email=email, entry_id=entry_id, phrase=phrase, keyword=keyword)
+        return result.data()
+    
+    @staticmethod
+    def _get_navigation_information(tx, email):
+        result = tx.run(" MATCH (k:Keyword{user:email})-[r:IN_ENTRY]->(e:Entry) RETURN k.keyword as keyword, r.phrase as phrase, elementId(e) AS entry_id ORDER BY k.keyword", email=email)
+        return result.data()
+    
+    @staticmethod
+    def _get_all_keywords(tx, email):
+        result = tx.run(" MATCH (k:Keyword{user:$email}) RETURN k.keyword as keyword ORDER BY keyword", email=email)
         return result.data()

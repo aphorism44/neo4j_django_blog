@@ -1,0 +1,11 @@
+<div>
+    {% csrf_token %}
+    {{ keyword }}
+    <br><br>
+    {% for item in item_list %}
+    <ul>
+        {{ item }}
+    </ul>
+{% endfor %}
+
+</div>

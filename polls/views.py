@@ -107,3 +107,6 @@ def analysis(request):
             neo4j_crud.attach_keyword_to_entry(email, entry_id, phrase, key)
     return render(request, "polls/analysis.html", {"word_map": full_dict})
 
+def blog_entry(request):
+    #start testing the new calls here
+    return None

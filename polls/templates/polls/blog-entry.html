@@ -1,0 +1,14 @@
+<div>
+    {% csrf_token %}
+    {{ entry_text }}
+    <br><br>
+    <form action="/polls/blog_listings/" method="get">
+        {% if form.previous_entry_id.value != None %}
+            <input type="submit" name="previous" value="Previous Entry (and save)" />
+        {% endif %}
+        {% if form.next_entry_id.value != None %}
+            <input type="submit" name="next" value="Next Entry (and save)"> </input>
+        {% endif %}
+    </form>
+
+</div>

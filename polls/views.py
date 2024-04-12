@@ -88,11 +88,22 @@ def editor(request):
     context = { 'form' : entry_form }
     return HttpResponse(template.render(context, request))
 
+#this is for initial setup - need to find way to do it piecemeal
 def analysis(request):
-    full_map = {}
+    neo4j_crud = request.neo4j_crud
+    full_dict = {}
     # of the format   keyWord -> List(of labels), parallel List (of entry IDs they refer to)
     # need to add these key words to Neo4j schema (MERGE)
-    full_map = create_ai_analyzed_map(request, email)
-    print(full_map)
-    return render(request, "polls/analysis.html", {"word_map": full_map})
+    # {'time': (['TIME is crucial as the blogger tests a new blog engine and plans upgrades.'
+    #, "The passage reflects on Joey's struggles with drugs over TIME in his short life."]
+    # , ['4:c3df316c-576d-4e93-8202-9cfd5caf4d33:8', '4:c3df316c-576d-4e93-8202-9cfd5caf4d33:4'])}
+    full_dict = {} #create_ai_analyzed_map(request, email)
+    for key, value in full_dict.items():
+        neo4j_crud.add_keyword(email, key)
+        phrase_array = value[0]
+        entry_id_array = value[1]
+        for idx, phrase in enumerate(phrase_array, start=0):
+            entry_id = entry_id_array[idx]
+            neo4j_crud.attach_keyword_to_entry(email, entry_id, phrase, key)
+    return render(request, "polls/analysis.html", {"word_map": full_dict})
 

@@ -20,7 +20,11 @@ class Neo4jCRUDOperations:
     
     def get_latest_entry(self, email):
         with self._driver.session() as session:
-            result = session.read_transaction(self._get_latest_entry, email)
+            try:
+                result = session.execute_read(self._get_latest_entry, email)
+            except Exception as e:
+                print(e)
+                return None
             if result:
                 return result[0]['e'], result[0]['latest_entry_id']
             else:
@@ -28,7 +32,11 @@ class Neo4jCRUDOperations:
     
     def get_entry_by_id(self, entry_id):
         with self._driver.session() as session:
-            result = session.read_transaction(self._get_entry_by_id, entry_id)
+            try:
+                result = session.execute_read(self._get_entry_by_id, entry_id)
+            except Exception as e:
+                print(e)
+                return None
             if result:
                 return result[0]['e'], result[0]['latest_entry_id']
             else:
@@ -36,7 +44,11 @@ class Neo4jCRUDOperations:
     
     def create_empty_entry(self, email):
         with self._driver.session() as session:
-            result = session.write_transaction(self._create_empty_entry, email)
+            try:
+                result = session.execute_write(self._create_empty_entry, email)
+            except Exception as e:
+                print(e)
+                return None
             if result:
                 return result[0]['new_entry_id']
             return None
@@ -45,7 +57,11 @@ class Neo4jCRUDOperations:
         with self._driver.session() as session:
             if entry_id is None:
                 return None
-            result = session.write_transaction(self._update_entry, entry_id, text)
+            try:
+                result = session.execute_write(self._update_entry, entry_id, text)
+            except Exception as e:
+                print(e)
+                return None
             if result:
                 return result[0]['e']
             return None
@@ -54,7 +70,11 @@ class Neo4jCRUDOperations:
         with self._driver.session() as session:
             if entry_id_from is None or entry_id_to is None:
                 return None
-            result = session.write_transaction(self._link_entry_chain, entry_id_from, entry_id_to)
+            try:
+                result = session.execute_write(self._link_entry_chain, entry_id_from, entry_id_to)
+            except Exception as e:
+                print(e)
+                return None
             if result:
                 return result[0]['to'], result[0]['from']
             else:
@@ -64,7 +84,11 @@ class Neo4jCRUDOperations:
         with self._driver.session() as session:
             if email is None or entry_id is None:
                 return None
-            result = session.write_transaction(self._get_next_entry, email, entry_id)
+            try:
+                result = session.execute_read(self._get_next_entry, email, entry_id)
+            except Exception as e:
+                print(e)
+                return None
             if result:
                 return result[0]['e2'], result[0]['next_id'] 
             else:
@@ -74,7 +98,11 @@ class Neo4jCRUDOperations:
         with self._driver.session() as session:
             if email is None or entry_id is None:
                 return None
-            result = session.write_transaction(self._get_previous_entry, email, entry_id)
+            try:
+               result = session.execute_read(self._get_previous_entry, email, entry_id)
+            except Exception as e:
+                print(e)
+                return None
             if result:
                 return result[0]['e2'], result[0]['previous_id']
             else:
@@ -84,11 +112,41 @@ class Neo4jCRUDOperations:
         with self._driver.session() as session:
             if email is None:
                 return None
-            results = session.write_transaction(self._get_all_entries, email)
+            try:
+                results = session.execute_read(self._get_all_entries, email)
+            except Exception as e:
+                print(e)
+                return None
             if results:
                 return results
             return None
-    
+        
+    def add_keyword(self, email, keyword):
+        with self._driver.session() as session:
+            if email is None or keyword is None:
+                return None
+            try:
+                result = session.execute_write(self._add_keyword, email, keyword)
+            except Exception as e:
+                print(e)
+                return None
+            if result:
+                return result[0]['k'], result[0]['keyword_id']
+            return None
+
+    def attach_keyword_to_entry(self, email, keyword, phrase, entry_id):
+        with self._driver.session() as session:
+            if email is None or keyword is None or phrase is None or entry_id is None:
+                return None
+            try:
+                result = session.execute_write(self.__attach_keyword_to_entry, email, keyword, phrase, entry_id)
+            except Exception as e:
+                print(e)
+                return None
+            if result:
+                return result[0]['k'], result[0]['keyword_id']
+            return None
+
     @staticmethod
     def _get_latest_entry(tx, email):
         result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at DESC LIMIT 1 RETURN e, elementId(e) as latest_entry_id", email=email)
@@ -129,4 +187,12 @@ class Neo4jCRUDOperations:
         result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at DESC RETURN e, elementId(e) AS entry_id", email=email)
         return result.data()
     
+    @staticmethod
+    def _add_keyword(tx, email, keyword):
+        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account) MERGE (a)-[r:HAS_KEYWORD]->(k:Keyword {keyword: $keyword, user: $email, created_at: TIMESTAMP()}) RETURN k, elementId(k) AS keyword_id", email=email, keyword=keyword)
+        return result.data()
     
+    @staticmethod
+    def __attach_keyword_to_entry(tx, email, entry_id, phrase, keyword):
+        result = tx.run("MATCH (e:Entry), (k:Keyword{user:$email, keyword:$keyword}) WHERE elementId(e) = $entry_id MERGE (k)-[:IN_ENTRY {phrase: $phrase }]->(e) RETURN k, elementId(k) AS keyword_id", email=email, entry_id=entry_id, phrase=phrase, keyword=keyword)
+        return result.data()

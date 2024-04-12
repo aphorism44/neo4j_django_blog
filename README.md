@@ -33,9 +33,10 @@ python manage.py runserver
 
 # Necessary pre-use Neo4j DB setup
 CREATE CONSTRAINT FOR (u:User) REQUIRE u.email IS UNIQUE;
+CREATE CONSTRAINT FOR (k:Keyword) REQUIRE (k.keyword, k.user) IS NODE KEY
+
 # in future, use this when a user is created
 CREATE (u:User {email: 'd-jesse@comcast.net', password: 'password', created_at: TIMESTAMP()})-[:HAS_ACCOUNT]->(a:Account {created_at: TIMESTAMP()})-[:HAS_ENTRY]->(e:Entry{created_at: TIMESTAMP()})
-
 
 
 # Useful Cipher
@@ -48,4 +49,4 @@ MATCH (n) DETACH DELETE n
 
 # useful command lines
 rm -r -fo .git
-python manage.py runserver
+python3 manage.py runserver

@@ -19,7 +19,6 @@ def create_ai_analyzed_map(request, email):
             tag_list.append(label)
             parallel_id_list.append(entry_id)
         analyzed_word_dict[key] = tag_list, parallel_id_list
-        break
     return analyzed_word_dict
 
 

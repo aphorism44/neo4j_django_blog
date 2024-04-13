@@ -268,3 +268,9 @@ class Neo4jCRUDOperations:
     def _get_all_keywords(tx, email):
         result = tx.run(" MATCH (k:Keyword{user:$email}) RETURN k.keyword as keyword ORDER BY keyword", email=email)
         return result.data()
+    
+# this will get a list of all the keywords in a particular entry - input: email, entry_id
+#MATCH (e:Entry)<-[r:IN_ENTRY]-(k:Keyword{user:'d-jesse@comcast.net'}) WHERE elementId(e) = '4:c3df316c-576d-4e93-8202-9cfd5caf4d33:6' RETURN k.keyword AS keyword
+
+# this will get a list of all the entries associated with a keyword - input keyword, email
+#MATCH (k:Keyword {keyword:'cousin', user: 'd-jesse@comcast.net'})-[r:IN_ENTRY]->(e:Entry) RETURN r.phrase AS phrase, elementId(e) AS entry_id

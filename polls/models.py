@@ -172,6 +172,20 @@ class Neo4jCRUDOperations:
                 return results
             return None
 
+    def get_keyword(self, email, keyword):
+        with self._driver.session() as session:
+            if email is None or keyword is None:
+                return None
+            try:
+                result = session.execute_read(self._get_keyword, email, keyword)
+            except Exception as e:
+                print(e)
+                return None
+            if result:
+                return result[0]['k'], result[0]['keyword_id'] 
+            else:
+                return None
+
     def get_all_keywords(self, email):
         with self._driver.session() as session:
             if email is None:
@@ -243,6 +257,11 @@ class Neo4jCRUDOperations:
     @staticmethod
     def _get_navigation_information(tx, email):
         result = tx.run(" MATCH (k:Keyword{user:email})-[r:IN_ENTRY]->(e:Entry) RETURN k.keyword as keyword, r.phrase as phrase, elementId(e) AS entry_id ORDER BY k.keyword", email=email)
+        return result.data()
+    
+    @staticmethod
+    def _get_keyword(tx, email, keyword):
+        result = tx.run(" MATCH (k:Keyword{user:$email, keyword:$keyword}) RETURN k, elementId(k) as as keyword_id", email=email,keyword=keyword)
         return result.data()
     
     @staticmethod

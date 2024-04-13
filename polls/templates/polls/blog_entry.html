@@ -1,0 +1,16 @@
+<div>
+    <form action="/polls/blog_entry/" method="post">
+        <input type="hidden" id="entry_id" name="entry_id" value={{ entry_id }}>
+        <input type="hidden" id="previous_entry_id" name="previous_entry_id" value={{ previous_entry_id }}>
+        <input type="hidden" id="next_entry_id" name="next_entry_id" value={{ next_entry_id }}>
+        {% csrf_token %}
+        {{ entry_text }}
+        <br><br>
+        {% if previous_entry_id != None %}
+            <input type="submit" name="previous" value="Previous Entry" />
+        {% endif %}
+        {% if next_entry_id != None %}
+            <input type="submit" name="next" value="Next Entry"> </input>
+        {% endif %}
+    </form>
+</div>

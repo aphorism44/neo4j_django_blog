@@ -10,4 +10,5 @@ urlpatterns = [
     path("editor/", views.editor, name="editor"),
     path("save_entry/", views.editor, name="save_entry"),
     path("analysis/", views.analysis, name="analysis"),
+    path("blog_entry/", views.blog_entry, name="blog_entry"),
 ]

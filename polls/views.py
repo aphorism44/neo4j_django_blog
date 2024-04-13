@@ -107,6 +107,41 @@ def analysis(request):
             neo4j_crud.attach_keyword_to_entry(email, entry_id, phrase, key)
     return render(request, "polls/analysis.html", {"word_map": full_dict})
 
+@csrf_protect
 def blog_entry(request):
-    #start testing the new calls here
-    return None
+    template = loader.get_template("polls/blog_entry.html")
+    neo4j_crud = request.neo4j_crud
+    if 'next' in request.POST.dict().keys():
+        current_entry_id = request.POST.dict()['entry_id']
+        current_next_entry_id = request.POST.dict()['next_entry_id']
+        entry, entry_id = neo4j_crud.get_entry_by_id(current_next_entry_id)
+        entry_text = entry['text']
+        previous_entry_id = current_entry_id
+        next_response = neo4j_crud.get_next_entry(email, entry_id)
+        if next_response is None:
+            next_entry_id = None
+        else:
+            next_entry_id = next_response[1]
+    elif 'previous' in request.POST.dict().keys():
+        current_entry_id = request.POST.dict()['entry_id']
+        current_previous_entry_id = request.POST.dict()['previous_entry_id']
+        entry, entry_id = neo4j_crud.get_entry_by_id(current_previous_entry_id)
+        entry_text = entry['text']
+        previous_response = neo4j_crud.get_previous_entry(email, entry_id)
+        if previous_response is None:
+            previous_entry_id = None
+        else:
+            previous_entry_id = previous_response[1]
+        next_entry_id = current_entry_id
+    elif len(request.POST.dict()) < 1:
+        first_entry, entry_id = neo4j_crud.get_first_entry(email)
+        entry_text = first_entry['text']
+        previous_entry_id =  None
+        next_entry, next_entry_id = neo4j_crud.get_next_entry(email, entry_id)
+    context = {
+        'entry_id': entry_id,
+        'entry_text': entry_text,
+        'previous_entry_id': previous_entry_id,
+        'next_entry_id': next_entry_id
+    }
+    return HttpResponse(template.render(context, request))

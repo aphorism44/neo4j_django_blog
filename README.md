@@ -46,6 +46,7 @@ MATCH (n) RETURN count(n) as node_count
 MATCH (n) RETURN n
 # erase whole graph
 MATCH (n) DETACH DELETE n
+MATCH(k:Keyword) DETACH DELETE k
 
 # useful command lines
 rm -r -fo .git

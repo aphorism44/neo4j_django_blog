@@ -56,8 +56,6 @@ def get_full_dict(request, email):
     return dict_full
 
 def noun_map(request, email):
-    lemmatizer = WordNetLemmatizer()
-    stop_words = set(stopwords.words("english"))
     neo4j_crud = request.neo4j_crud
     list = neo4j_crud.get_all_entries(email)
     list_dict = {}
@@ -77,11 +75,18 @@ def proper_noun_map(request, email):
     neo4j_crud = request.neo4j_crud
     list = neo4j_crud.get_all_entries(email)
     list_dict = {}
+    lemmatizer = WordNetLemmatizer()
+    stop_words = set(stopwords.words("english"))
     for item in list:
         entry_text = "" if item['e']['text'] is None else item['e']['text']
         if len(entry_text) > 0:
             words_in_quote = word_tokenize(entry_text, language=language)
-            tags = nltk.pos_tag(words_in_quote)
+            lemmatized_words = [lemmatizer.lemmatize(word) for word in words_in_quote]
+            filtered_list = []
+            for word in lemmatized_words:
+                if word.casefold() not in stop_words:
+                    filtered_list.append(word)
+            tags = nltk.pos_tag(filtered_list)
             tree = nltk.ne_chunk(tags, binary=True)
             work_set = set(
                  " ".join(i[0] for i in t)

@@ -4,7 +4,7 @@
         <input type="hidden" id="previous_entry_id" name="previous_entry_id" value={{ previous_entry_id }}>
         <input type="hidden" id="next_entry_id" name="next_entry_id" value={{ next_entry_id }}>
         {% csrf_token %}
-        {{ entry_text }}
+        {{ entry_text | safe  }}
         <br><br>
         {% if previous_entry_id != None %}
             <input type="submit" name="previous" value="Previous Entry" />

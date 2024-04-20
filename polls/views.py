@@ -8,6 +8,8 @@ from .analysis import create_ai_analyzed_map, get_matched_words_dict, get_full_d
 
 #hardcoded until app is updated for multiuser
 email = 'd-jesse@comcast.net'
+#hardcoded until this is pinned to environment
+url_line = "http://127.0.0.1:8000/"
 
 def index(request):
     template = loader.get_template("polls/index.html")
@@ -97,7 +99,7 @@ def analysis(request):
     # {'time': (['TIME is crucial as the blogger tests a new blog engine and plans upgrades.'
     #, "The passage reflects on Joey's struggles with drugs over TIME in his short life."]
     # , ['4:c3df316c-576d-4e93-8202-9cfd5caf4d33:8', '4:c3df316c-576d-4e93-8202-9cfd5caf4d33:4'])}
-    full_dict = {} #create_ai_analyzed_map(request, email)
+    full_dict = create_ai_analyzed_map(request, email)
     for key, value in full_dict.items():
         neo4j_crud.add_keyword(email, key)
         phrase_array = value[0]
@@ -138,6 +140,12 @@ def blog_entry(request):
         entry_text = first_entry['text']
         previous_entry_id =  None
         next_entry, next_entry_id = neo4j_crud.get_next_entry(email, entry_id)
+    #update text with links
+    entry_keywords = neo4j_crud.get_all_entry_keywords(email, entry_id)
+    if entry_keywords is not None:
+        for result in entry_keywords:
+            word = result['keyword']
+            entry_text = entry_text.replace(word, '<a href="' + url_line + '/polls/keywords/' + word + '">' + word + '</a>')
     context = {
         'entry_id': entry_id,
         'entry_text': entry_text,

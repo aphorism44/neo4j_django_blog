@@ -198,7 +198,33 @@ class Neo4jCRUDOperations:
             if results:
                 return results
             return None
-        
+
+    def get_all_entry_keywords(self, email, entry_id):
+        with self._driver.session() as session:
+            if email is None or entry_id is None:
+                return None
+            try:
+                results = session.execute_read(self._get_all_entry_keywords, email, entry_id)
+            except Exception as e:
+                print(e)
+                return None
+            if results:
+                return results
+            return None
+    
+    def get_all_keyword_entries(self, email, keyword):
+        with self._driver.session() as session:
+            if email is None or keyword is None:
+                return None
+            try:
+                results = session.execute_read(self._get_all_keyword_entries, email, keyword)
+            except Exception as e:
+                print(e)
+                return None
+            if results:
+                return results
+            return None
+
     @staticmethod
     def _get_first_entry(tx, email):
         result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WITH e ORDER BY e.created_at LIMIT 1 RETURN e, elementId(e) as first_entry_id", email=email)
@@ -269,8 +295,14 @@ class Neo4jCRUDOperations:
         result = tx.run(" MATCH (k:Keyword{user:$email}) RETURN k.keyword as keyword ORDER BY keyword", email=email)
         return result.data()
     
-# this will get a list of all the keywords in a particular entry - input: email, entry_id
-#MATCH (e:Entry)<-[r:IN_ENTRY]-(k:Keyword{user:'d-jesse@comcast.net'}) WHERE elementId(e) = '4:c3df316c-576d-4e93-8202-9cfd5caf4d33:6' RETURN k.keyword AS keyword
-
-# this will get a list of all the entries associated with a keyword - input keyword, email
-#MATCH (k:Keyword {keyword:'cousin', user: 'd-jesse@comcast.net'})-[r:IN_ENTRY]->(e:Entry) RETURN r.phrase AS phrase, elementId(e) AS entry_id
+    @staticmethod
+    def _get_all_entry_keywords(tx, email, entry_id):
+        result = tx.run("MATCH (e:Entry)<-[r:IN_ENTRY]-(k:Keyword{user:$email}) WHERE elementId(e) = $entry_id RETURN k.keyword AS keyword, elementId(k) AS keyword_id", email=email, entry_id=entry_id)
+        return result.data()
+    
+    @staticmethod
+    def _get_all_keyword_entries(tx, email, keyword):
+        result = tx.run("MATCH (k:Keyword {keyword:$keyword, user: $email})-[r:IN_ENTRY]->(e:Entry) RETURN r.phrase AS phrase, elementId(e) AS entry_id", email=email, keyword=keyword)
+        return result.data()
+    
+    

@@ -4,8 +4,8 @@
     <br><br>
     {% for item in item_list %}
     <ul>
-        {{ item }}
+        {{ item | safe }}
     </ul>
 {% endfor %}
-
 </div>
+<li><a href="/polls">Return to Main Page</a></li>

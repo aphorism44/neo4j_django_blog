@@ -28,14 +28,15 @@ def get_matched_words_dict(request, email):
     #change from ID -> words to word -> IDs
     word_set = set()
     for key, value in full_dict.items():
-        word_set.update(value)
-    for word in word_set:
-        id_set = set()
-        for key, value in full_dict.items():
-            if word in value:
-                id_set.add(key)
-        if len(id_set) > 1:
-            matched_words_dict[word] = id_set
+        if value not in full_dict.values():
+            word_set.update(value)
+            for word in word_set:
+                id_set = set()
+                for key, value in full_dict.items():
+                    if word in value:
+                        id_set.add(key)
+                if len(id_set) > 1:
+                    matched_words_dict[word] = id_set
     return matched_words_dict
 
 

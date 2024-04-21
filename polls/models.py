@@ -42,10 +42,12 @@ class Neo4jCRUDOperations:
             else:
                 return None
     
-    def get_entry_by_id(self, entry_id):
+    def get_entry_by_id(self, email, entry_id):
         with self._driver.session() as session:
+            if email is None or entry_id is None:
+                return None
             try:
-                result = session.execute_read(self._get_entry_by_id, entry_id)
+                result = session.execute_read(self._get_entry_by_id, email, entry_id)
             except Exception as e:
                 print(e)
                 return None
@@ -236,8 +238,8 @@ class Neo4jCRUDOperations:
         return result.data()
     
     @staticmethod
-    def _get_entry_by_id(tx, entry_id):
-        result = tx.run("MATCH (e:Entry) WHERE elementId(e) = $entry_id RETURN e, elementId(e) as latest_entry_id", entry_id=entry_id)
+    def _get_entry_by_id(tx, email, entry_id):
+        result = tx.run("MATCH (u:User {email: $email})-[:HAS_ACCOUNT]->(a:Account)-[:HAS_ENTRY]->(e:Entry) WHERE elementId(e) = $entry_id RETURN e, elementId(e) as latest_entry_id", email=email,entry_id=entry_id)
         return result.data()
     
     @staticmethod

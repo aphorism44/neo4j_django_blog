@@ -16,7 +16,7 @@ def get_entry_word_label(request, word, entry_id):
                  + "include the inputed word in the response as the subject of the sentence. Make sure "
                  + "that word is included smoothly within the sentence, and understandable"
                  + "Do not place any words in all-caps besides the inputed word, but make sure to "
-                 + "place the inputed word in all-caps. Remember that the blogger is writing personal things in this blog.")
+                 + "place ONLY the inputed word in all-caps. Write in the first person, from the writer's point of view.")
     prompt_text = ("Please create a sentence of 12 words or less describing how the word "
         + word + " relates to the following passage.Make sure that word is put in all-caps. " + entry_text)
     completion  = client.chat.completions.create(
